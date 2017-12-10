@@ -49,7 +49,7 @@ func initGlfw() *glfw.Window {
 	return win
 }
 
-func attachShader(program uint32, kind uint32, src string) {
+func attachShader(program, kind uint32, src string) {
 	s := gl.CreateShader(kind)
 	strs, free := gl.Strs(src + "\x00")
 	gl.ShaderSource(s, 1, strs, nil)
