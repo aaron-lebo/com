@@ -37,6 +37,10 @@ var triangle = []float32{
 var indices = []uint16{
 	0, 1, 2,
 }
+var keys [512]bool
+var position = mgl32.Vec3{0, 0, 10}
+var direction = mgl32.Vec3{0, 0, -1}
+var up = mgl32.Vec3{0, 1, 0}
 
 type Shader struct {
 	program uint32
@@ -49,6 +53,14 @@ func check(err error) {
 	}
 }
 
+func keyCallback(w *glfw.Window, k glfw.Key, s int, a glfw.Action, mk glfw.ModifierKey) {
+	if a == glfw.Press {
+		keys[k] = true
+	} else if a == glfw.Release {
+		keys[k] = false
+	}
+}
+
 func initGlfw() *glfw.Window {
 	check(glfw.Init())
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
@@ -58,6 +70,7 @@ func initGlfw() *glfw.Window {
 	win, err := glfw.CreateWindow(800, 600, "comanche", nil, nil)
 	check(err)
 	win.MakeContextCurrent()
+	win.SetKeyCallback(keyCallback)
 	return win
 }
 
@@ -103,11 +116,29 @@ func initGl() *Shader {
 	return &Shader{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
 }
 
+func update() {
+	const speed = 0.5
+	pos := direction.Mul(speed)
+	if keys[glfw.KeyW] {
+		position = position.Add(pos)
+	}
+	if keys[glfw.KeyA] {
+		position = position.Sub(pos.Cross(up).Normalize())
+	}
+	if keys[glfw.KeyS] {
+		position = position.Sub(pos)
+	}
+	if keys[glfw.KeyD] {
+		position = position.Add(pos.Cross(up).Normalize())
+	}
+
+}
+
 func render(shader *Shader) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(shader.program)
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0), height/width, 0.1, 1000.0)
-	view := mgl32.LookAtV(mgl32.Vec3{0, 0, 10}, mgl32.Vec3{0, 0, -1}, mgl32.Vec3{0, 1, 0})
+	view := mgl32.LookAtV(position, position.Add(direction), up)
 	model := mgl32.Ident4()
 	mvp := projection.Mul4(view).Mul4(model)
 	gl.UniformMatrix4fv(shader.mvp, 1, false, &mvp[0])
@@ -123,6 +154,7 @@ func main() {
 	defer glfw.Terminate()
 	program := initGl()
 	for !win.ShouldClose() {
+		update()
 		render(program)
 		win.SwapBuffers()
 		glfw.PollEvents()
