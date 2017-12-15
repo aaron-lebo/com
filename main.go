@@ -67,7 +67,7 @@ func initGlfw() *glfw.Window {
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	win, err := glfw.CreateWindow(800, 600, "comanche", nil, nil)
+	win, err := glfw.CreateWindow(height, width, "comanche", nil, nil)
 	check(err)
 	win.MakeContextCurrent()
 	win.SetKeyCallback(keyCallback)
