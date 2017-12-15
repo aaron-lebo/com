@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
+	"github.com/go-gl/mathgl/mgl32"
 	"runtime"
 	"strings"
 )
@@ -11,9 +12,10 @@ import (
 const (
 	vertexShader = `
 		#version 410
+		uniform mat4 mvp;
 		in vec3 pos;
 		void main() {
-			gl_Position = vec4(pos, 1.0);
+			gl_Position = mvp * vec4(pos, 1.0);
 		}
 	`
 	fragmentShader = `
@@ -32,6 +34,11 @@ var triangle = []float32{
 }
 var indices = []uint16{
 	0, 1, 2,
+}
+
+type Shader struct {
+	program uint32
+	mvp     int32
 }
 
 func check(err error) {
@@ -71,7 +78,7 @@ func attachShader(program, kind uint32, src string) {
 	}
 }
 
-func initGl() uint32 {
+func initGl() *Shader {
 	check(gl.Init())
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println(version)
@@ -91,12 +98,14 @@ func initGl() uint32 {
 	attachShader(p, gl.VERTEX_SHADER, vertexShader)
 	attachShader(p, gl.FRAGMENT_SHADER, fragmentShader)
 	gl.LinkProgram(p)
-	return p
+	return &Shader{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
 }
 
-func render(program uint32) {
+func render(shader *Shader) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(program)
+	gl.UseProgram(shader.program)
+	mvp := mgl32.Ident4()
+	gl.UniformMatrix4fv(shader.mvp, 1, false, &mvp[0])
 	gl.EnableVertexAttribArray(0)
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_SHORT, nil)
 	gl.DisableVertexAttribArray(0)
