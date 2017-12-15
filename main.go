@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	height       = 800
+	width        = 600
 	vertexShader = `
 		#version 410
 		uniform mat4 mvp;
@@ -104,7 +106,7 @@ func initGl() *Shader {
 func render(shader *Shader) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(shader.program)
-	projection := mgl32.Perspective(mgl32.DegToRad(45.0), float32(800)/600, 0.1, 1000.0)
+	projection := mgl32.Perspective(mgl32.DegToRad(45.0), height/width, 0.1, 1000.0)
 	view := mgl32.LookAtV(mgl32.Vec3{0, 0, 10}, mgl32.Vec3{0, 0, -1}, mgl32.Vec3{0, 1, 0})
 	model := mgl32.Ident4()
 	mvp := projection.Mul4(view).Mul4(model)
