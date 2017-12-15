@@ -42,7 +42,7 @@ var position = mgl32.Vec3{0, 0, 10}
 var direction = mgl32.Vec3{0, 0, -1}
 var up = mgl32.Vec3{0, 1, 0}
 
-type Shader struct {
+type ShaderProgram struct {
 	program uint32
 	mvp     int32
 }
@@ -93,7 +93,7 @@ func attachShader(program, kind uint32, src string) {
 	}
 }
 
-func initGl() *Shader {
+func initGl() *ShaderProgram {
 	check(gl.Init())
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println(version)
@@ -113,7 +113,7 @@ func initGl() *Shader {
 	attachShader(p, gl.VERTEX_SHADER, vertexShader)
 	attachShader(p, gl.FRAGMENT_SHADER, fragmentShader)
 	gl.LinkProgram(p)
-	return &Shader{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
+	return &ShaderProgram{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
 }
 
 func update() {
@@ -134,14 +134,14 @@ func update() {
 
 }
 
-func render(shader *Shader) {
+func render(shaderProgram *ShaderProgram) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(shader.program)
+	gl.UseProgram(shaderProgram.program)
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0), height/width, 0.1, 1000.0)
 	view := mgl32.LookAtV(position, position.Add(direction), up)
 	model := mgl32.Ident4()
 	mvp := projection.Mul4(view).Mul4(model)
-	gl.UniformMatrix4fv(shader.mvp, 1, false, &mvp[0])
+	gl.UniformMatrix4fv(shaderProgram.mvp, 1, false, &mvp[0])
 	gl.EnableVertexAttribArray(0)
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_SHORT, nil)
 	gl.DisableVertexAttribArray(0)
