@@ -134,14 +134,14 @@ func update() {
 
 }
 
-func render(shaderProgram *ShaderProgram) {
+func render(program *ShaderProgram) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(shaderProgram.program)
+	gl.UseProgram(program.program)
 	projection := mgl32.Perspective(mgl32.DegToRad(45.0), height/width, 0.1, 1000.0)
 	view := mgl32.LookAtV(position, position.Add(direction), up)
 	model := mgl32.Ident4()
 	mvp := projection.Mul4(view).Mul4(model)
-	gl.UniformMatrix4fv(shaderProgram.mvp, 1, false, &mvp[0])
+	gl.UniformMatrix4fv(program.mvp, 1, false, &mvp[0])
 	gl.EnableVertexAttribArray(0)
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_SHORT, nil)
 	gl.DisableVertexAttribArray(0)
