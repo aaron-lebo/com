@@ -30,6 +30,9 @@ var triangle = []float32{
 	-0.5, -0.5, 0,
 	0.5, -0.5, 0,
 }
+var indices = []uint16{
+	0, 1, 2,
+}
 
 func check(err error) {
 	if err != nil {
@@ -68,34 +71,35 @@ func attachShader(program, kind uint32, src string) {
 	}
 }
 
-func initGl() (uint32, uint32) {
+func initGl() uint32 {
 	check(gl.Init())
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println(version)
 
-	var vbo uint32
+	var vao, vbo, ibo uint32
+	gl.GenVertexArrays(1, &vao)
+	gl.BindVertexArray(vao)
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangle), gl.Ptr(triangle), gl.STATIC_DRAW)
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-	gl.EnableVertexAttribArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.GenBuffers(1, &ibo)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(indices), gl.Ptr(indices), gl.STATIC_DRAW)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 
 	p := gl.CreateProgram()
 	attachShader(p, gl.VERTEX_SHADER, vertexShader)
 	attachShader(p, gl.FRAGMENT_SHADER, fragmentShader)
 	gl.LinkProgram(p)
-	return vao, p
+	return p
 }
 
-func render(vao, program uint32) {
+func render(program uint32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program)
-	gl.BindVertexArray(vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, int32(3))
+	gl.EnableVertexAttribArray(0)
+	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_SHORT, nil)
+	gl.DisableVertexAttribArray(0)
 }
 
 func main() {
@@ -103,9 +107,9 @@ func main() {
 
 	win := initGlfw()
 	defer glfw.Terminate()
-	vao, program := initGl()
+	program := initGl()
 	for !win.ShouldClose() {
-		render(vao, program)
+		render(program)
 		win.SwapBuffers()
 		glfw.PollEvents()
 	}
