@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	height       = 800
-	width        = 600
 	vertexShader = `
 		#version 410
 		uniform mat4 mvp;
@@ -39,8 +37,7 @@ var indices = []uint16{
 	0, 1, 2,
 }
 var keys [512]bool
-var mouseX = width / 2.0
-var mouseY = height / 2.0
+var mouseX, mouseY float64
 var position = mgl32.Vec3{0, 0, 10}
 var direction = mgl32.Vec3{0, 0, -1}
 var up = mgl32.Vec3{0, 1, 0}
@@ -79,18 +76,26 @@ func mouseCallback(win *glfw.Window, x, y float64) {
 	mouseY = y
 }
 
+func sizeCallback(win *glfw.Window, w, h int) {
+	gl.Viewport(0, 0, int32(w), int32(h))
+	mouseX = float64(w / 2)
+	mouseY = float64(h / 2)
+	win.SetCursorPos(mouseX, mouseY)
+}
+
 func initGlfw() *glfw.Window {
 	check(glfw.Init())
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	win, err := glfw.CreateWindow(height, width, "comanche", nil, nil)
+	win, err := glfw.CreateWindow(800, 600, "comanche", nil, nil)
 	check(err)
 	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	win.MakeContextCurrent()
 	win.SetKeyCallback(keyCallback)
 	win.SetCursorPosCallback(mouseCallback)
+	win.SetSizeCallback(sizeCallback)
 	win.SetCursorPos(mouseX, mouseY)
 	return win
 }
@@ -167,7 +172,7 @@ func update() {
 func render(program *ShaderProgram) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.UseProgram(program.program)
-	projection := mgl32.Perspective(mgl32.DegToRad(45.0), height/width, 0.1, 1000.0)
+	projection := mgl32.Perspective(mgl32.DegToRad(45.0), 4/3, 0.1, 1000.0)
 	view := mgl32.LookAtV(position, position.Add(direction), up)
 	model := mgl32.Ident4()
 	mvp := projection.Mul4(view).Mul4(model)
