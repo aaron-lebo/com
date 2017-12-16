@@ -5,6 +5,7 @@ import (
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"github.com/go-gl/mathgl/mgl32"
+	"math"
 	"runtime"
 	"strings"
 )
@@ -38,9 +39,13 @@ var indices = []uint16{
 	0, 1, 2,
 }
 var keys [512]bool
+var mouseX = width / 2.0
+var mouseY = height / 2.0
 var position = mgl32.Vec3{0, 0, 10}
 var direction = mgl32.Vec3{0, 0, -1}
 var up = mgl32.Vec3{0, 1, 0}
+var pitch = 0.0
+var yaw = -90.0
 
 type ShaderProgram struct {
 	program uint32
@@ -61,6 +66,28 @@ func keyCallback(win *glfw.Window, key glfw.Key, scancode int, act glfw.Action, 
 	}
 }
 
+func radians(angle float64) float64 {
+	return angle * math.Pi / 180
+}
+
+func mouseCallback(win *glfw.Window, x, y float64) {
+	const sensitivity = 0.05
+	yaw += sensitivity * (x - mouseX)
+	pitch += sensitivity * (mouseY - y)
+	if pitch < -89.0 {
+		pitch = -89.0
+	} else if pitch > 89.0 {
+		pitch = 89.0
+	}
+	mouseX = x
+	mouseY = y
+	direction = mgl32.Vec3{
+		float32(math.Cos(radians(yaw)) * math.Cos(radians(pitch))),
+		float32(math.Sin(radians(pitch))),
+		float32(math.Sin(radians(yaw)) * math.Cos(radians(pitch))),
+	}.Normalize()
+}
+
 func initGlfw() *glfw.Window {
 	check(glfw.Init())
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
@@ -71,6 +98,9 @@ func initGlfw() *glfw.Window {
 	check(err)
 	win.MakeContextCurrent()
 	win.SetKeyCallback(keyCallback)
+	win.SetCursorPosCallback(mouseCallback)
+	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
+	win.SetCursorPos(mouseX, mouseY)
 	return win
 }
 
