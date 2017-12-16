@@ -66,10 +66,6 @@ func keyCallback(win *glfw.Window, key glfw.Key, scancode int, act glfw.Action, 
 	}
 }
 
-func radians(angle float64) float64 {
-	return angle * math.Pi / 180
-}
-
 func mouseCallback(win *glfw.Window, x, y float64) {
 	const sensitivity = 0.05
 	yaw += sensitivity * (x - mouseX)
@@ -81,11 +77,6 @@ func mouseCallback(win *glfw.Window, x, y float64) {
 	}
 	mouseX = x
 	mouseY = y
-	direction = mgl32.Vec3{
-		float32(math.Cos(radians(yaw)) * math.Cos(radians(pitch))),
-		float32(math.Sin(radians(pitch))),
-		float32(math.Sin(radians(yaw)) * math.Cos(radians(pitch))),
-	}.Normalize()
 }
 
 func initGlfw() *glfw.Window {
@@ -146,7 +137,17 @@ func initGl() *ShaderProgram {
 	return &ShaderProgram{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
 }
 
+func radians(angle float64) float64 {
+	return angle * math.Pi / 180
+}
+
 func update() {
+	direction = mgl32.Vec3{
+		float32(math.Cos(radians(yaw)) * math.Cos(radians(pitch))),
+		float32(math.Sin(radians(pitch))),
+		float32(math.Sin(radians(yaw)) * math.Cos(radians(pitch))),
+	}.Normalize()
+
 	const speed = 0.5
 	pos := direction.Mul(speed)
 	if keys[glfw.KeyW] {
@@ -161,7 +162,6 @@ func update() {
 	if keys[glfw.KeyD] {
 		position = position.Add(pos.Cross(up).Normalize())
 	}
-
 }
 
 func render(program *ShaderProgram) {
