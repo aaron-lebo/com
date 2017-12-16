@@ -96,10 +96,10 @@ func initGlfw() *glfw.Window {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	win, err := glfw.CreateWindow(height, width, "comanche", nil, nil)
 	check(err)
+	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	win.MakeContextCurrent()
 	win.SetKeyCallback(keyCallback)
 	win.SetCursorPosCallback(mouseCallback)
-	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	win.SetCursorPos(mouseX, mouseY)
 	return win
 }
