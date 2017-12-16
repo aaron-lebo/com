@@ -53,11 +53,11 @@ func check(err error) {
 	}
 }
 
-func keyCallback(w *glfw.Window, k glfw.Key, s int, a glfw.Action, mk glfw.ModifierKey) {
-	if a == glfw.Press {
-		keys[k] = true
-	} else if a == glfw.Release {
-		keys[k] = false
+func keyCallback(win *glfw.Window, key glfw.Key, scancode int, act glfw.Action, mod glfw.ModifierKey) {
+	if act == glfw.Press {
+		keys[key] = true
+	} else if act == glfw.Release {
+		keys[key] = false
 	}
 }
 
