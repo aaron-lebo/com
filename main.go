@@ -42,8 +42,12 @@ var cube = []float32{
 	b, b, b,
 }
 var indices = []uint16{
-	0, 1, 2, 0, 2, 3, // +z
-	4, 5, 6, 4, 6, 7, // -z
+	0, 1, 2, 2, 3, 0, // +z
+	4, 5, 6, 6, 7, 4, // -z
+	4, 5, 1, 1, 0, 4, // +y
+	3, 2, 6, 6, 7, 3, // -y
+	0, 4, 7, 7, 3, 0, // +x
+	1, 5, 6, 6, 2, 1, // -x
 }
 var keys [512]bool
 var mouseX, mouseY float64
@@ -100,8 +104,8 @@ func initGlfw() *glfw.Window {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	win, err := glfw.CreateWindow(800, 600, "comanche", nil, nil)
 	check(err)
-	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	win.MakeContextCurrent()
+	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	win.SetKeyCallback(keyCallback)
 	win.SetCursorPosCallback(mouseCallback)
 	win.SetSizeCallback(sizeCallback)
