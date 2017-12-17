@@ -26,36 +26,37 @@ const (
 			color = vec4(1, 1, 1, 1.0);
 		}
 	`
+	a = 0.5
+	b = -a
 )
 
-const a = 0.5
-const b = -a
-
-var cube = []float32{
-	b, a, a,
-	a, a, a,
-	a, b, a,
-	b, b, a,
-	b, a, b,
-	a, a, b,
-	a, b, b,
-	b, b, b,
-}
-var indices = []uint16{
-	0, 1, 2, 2, 3, 0, // +z
-	4, 5, 6, 6, 7, 4, // -z
-	4, 5, 1, 1, 0, 4, // +y
-	3, 2, 6, 6, 7, 3, // -y
-	0, 4, 7, 7, 3, 0, // +x
-	1, 5, 6, 6, 2, 1, // -x
-}
-var keys [512]bool
-var mouseX, mouseY float64
-var position = mgl32.Vec3{0, 0, 10}
-var direction = mgl32.Vec3{0, 0, -1}
-var up = mgl32.Vec3{0, 1, 0}
-var pitch = 0.0
-var yaw = -90.0
+var (
+	cube = []float32{
+		b, a, a,
+		a, a, a,
+		a, b, a,
+		b, b, a,
+		b, a, b,
+		a, a, b,
+		a, b, b,
+		b, b, b,
+	}
+	indices = []uint16{
+		0, 1, 2, 2, 3, 0, // +z
+		4, 5, 6, 6, 7, 4, // -z
+		4, 5, 1, 1, 0, 4, // +y
+		3, 2, 6, 6, 7, 3, // -y
+		0, 4, 7, 7, 3, 0, // +x
+		1, 5, 6, 6, 2, 1, // -x
+	}
+	keys           [512]bool
+	mouseX, mouseY float64
+	position       = mgl32.Vec3{0, 0, 10}
+	direction      = mgl32.Vec3{0, 0, -1}
+	up             = mgl32.Vec3{0, 1, 0}
+	pitch          = 0.0
+	yaw            = -90.0
+)
 
 type ShaderProgram struct {
 	program uint32
