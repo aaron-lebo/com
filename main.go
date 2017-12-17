@@ -28,13 +28,22 @@ const (
 	`
 )
 
-var triangle = []float32{
-	0, 0.5, 0,
-	-0.5, -0.5, 0,
-	0.5, -0.5, 0,
+const a = 0.5
+const b = -a
+
+var cube = []float32{
+	b, a, a,
+	a, a, a,
+	a, b, a,
+	b, b, a,
+	b, a, b,
+	a, a, b,
+	a, b, b,
+	b, b, b,
 }
 var indices = []uint16{
-	0, 1, 2,
+	0, 1, 2, 0, 2, 3, // +z
+	4, 5, 6, 4, 6, 7, // -z
 }
 var keys [512]bool
 var mouseX, mouseY float64
@@ -129,7 +138,7 @@ func initGl() *ShaderProgram {
 	gl.BindVertexArray(vao)
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(triangle), gl.Ptr(triangle), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(cube), gl.Ptr(cube), gl.STATIC_DRAW)
 	gl.GenBuffers(1, &ibo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(indices), gl.Ptr(indices), gl.STATIC_DRAW)
