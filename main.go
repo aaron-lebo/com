@@ -32,22 +32,22 @@ const (
 
 var (
 	cube = []float32{
-		b, a, a,
-		a, a, a,
-		a, b, a,
 		b, b, a,
+		a, b, a,
+		a, a, a,
+		b, a, a,
+		b, b, b,
 		b, a, b,
 		a, a, b,
 		a, b, b,
-		b, b, b,
 	}
 	indices = []uint16{
 		0, 1, 2, 2, 3, 0, // +z
 		4, 5, 6, 6, 7, 4, // -z
-		4, 5, 1, 1, 0, 4, // +y
-		3, 2, 6, 6, 7, 3, // -y
-		0, 4, 7, 7, 3, 0, // +x
-		1, 5, 6, 6, 2, 1, // -x
+		3, 2, 6, 6, 5, 3, // +y
+		0, 4, 7, 7, 1, 0, // -y
+		1, 7, 6, 6, 2, 1, // +x
+		0, 3, 5, 5, 4, 0, // -x
 	}
 	keys           [512]bool
 	mouseX, mouseY float64
@@ -135,8 +135,10 @@ func attachShader(program, kind uint32, src string) {
 
 func initGl() *ShaderProgram {
 	check(gl.Init())
-	version := gl.GoStr(gl.GetString(gl.VERSION))
-	fmt.Println(version)
+	fmt.Println(gl.GoStr(gl.GetString(gl.VERSION)))
+
+	gl.Enable(gl.CULL_FACE)
+	gl.Enable(gl.DEPTH_TEST)
 
 	var vao, vbo, ibo uint32
 	gl.GenVertexArrays(1, &vao)
