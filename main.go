@@ -31,7 +31,7 @@ const (
 )
 
 var (
-	cube = []float32{
+	block = []float32{
 		b, b, a,
 		a, b, a,
 		a, a, a,
@@ -41,14 +41,8 @@ var (
 		a, a, b,
 		a, b, b,
 	}
-	indices = []uint16{
-		0, 1, 2, 2, 3, 0, // +z
-		4, 5, 6, 6, 7, 4, // -z
-		3, 2, 6, 6, 5, 3, // +y
-		0, 4, 7, 7, 1, 0, // -y
-		1, 7, 6, 6, 2, 1, // +x
-		0, 3, 5, 5, 4, 0, // -x
-	}
+	chunk          [24 * 4096]float32
+	chunkIndices   = make([]uint16, 0, 36*4096)
 	keys           [512]bool
 	mouseX, mouseY float64
 	position       = mgl32.Vec3{0, 0, 10}
@@ -57,6 +51,20 @@ var (
 	pitch          = 0.0
 	yaw            = -90.0
 )
+
+func addBlock(x, y, z int) {
+	var blockIndices = []uint16{
+		0, 1, 2, 2, 3, 0, // +z
+		4, 5, 6, 6, 7, 4, // -z
+		3, 2, 6, 6, 5, 3, // +y
+		0, 4, 7, 7, 1, 0, // -y
+		1, 7, 6, 6, 2, 1, // +x
+		0, 3, 5, 5, 4, 0, // -x
+	}
+	for _, idx := range blockIndices {
+		chunkIndices = append(chunkIndices, idx)
+	}
+}
 
 type ShaderProgram struct {
 	program uint32
@@ -145,10 +153,10 @@ func initGl() *ShaderProgram {
 	gl.BindVertexArray(vao)
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(cube), gl.Ptr(cube), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(block), gl.Ptr(block), gl.STATIC_DRAW)
 	gl.GenBuffers(1, &ibo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(indices), gl.Ptr(indices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 
 	p := gl.CreateProgram()
@@ -194,13 +202,14 @@ func render(program *ShaderProgram) {
 	mvp := projection.Mul4(view).Mul4(model)
 	gl.UniformMatrix4fv(program.mvp, 1, false, &mvp[0])
 	gl.EnableVertexAttribArray(0)
-	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_SHORT, nil)
+	gl.DrawElements(gl.TRIANGLES, int32(len(chunkIndices)), gl.UNSIGNED_SHORT, nil)
 	gl.DisableVertexAttribArray(0)
 }
 
 func main() {
 	runtime.LockOSThread()
 
+	addBlock(0, 0, 0)
 	win := initGlfw()
 	defer glfw.Terminate()
 	program := initGl()
