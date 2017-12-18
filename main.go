@@ -26,22 +26,10 @@ const (
 			color = vec4(1, 1, 1, 1.0);
 		}
 	`
-	a = 0.5
-	b = -a
 )
 
 var (
-	block = []float32{
-		b, b, a,
-		a, b, a,
-		a, a, a,
-		b, a, a,
-		b, b, b,
-		b, a, b,
-		a, a, b,
-		a, b, b,
-	}
-	chunk          [24 * 4096]float32
+	chunk          = make([]float32, 0, 24*4096)
 	chunkIndices   = make([]uint16, 0, 36*4096)
 	keys           [512]bool
 	mouseX, mouseY float64
@@ -52,7 +40,19 @@ var (
 	yaw            = -90.0
 )
 
-func addBlock(x, y, z int) {
+func addBlock(x, y, z float32) {
+	const a = 0.5
+	const b = -a
+	var block = []float32{
+		b, b, a,
+		a, b, a,
+		a, a, a,
+		b, a, a,
+		b, b, b,
+		b, a, b,
+		a, a, b,
+		a, b, b,
+	}
 	var blockIndices = []uint16{
 		0, 1, 2, 2, 3, 0, // +z
 		4, 5, 6, 6, 7, 4, // -z
@@ -60,6 +60,12 @@ func addBlock(x, y, z int) {
 		0, 4, 7, 7, 1, 0, // -y
 		1, 7, 6, 6, 2, 1, // +x
 		0, 3, 5, 5, 4, 0, // -x
+	}
+	for row := 0; row < 8; row++ {
+		idx := row * 3
+		chunk = append(chunk, block[idx]+x)
+		chunk = append(chunk, block[idx+1]+y)
+		chunk = append(chunk, block[idx+2]+z)
 	}
 	for _, idx := range blockIndices {
 		chunkIndices = append(chunkIndices, idx)
@@ -153,7 +159,7 @@ func initGl() *ShaderProgram {
 	gl.BindVertexArray(vao)
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(block), gl.Ptr(block), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(chunk), gl.Ptr(chunk), gl.STATIC_DRAW)
 	gl.GenBuffers(1, &ibo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
