@@ -43,7 +43,7 @@ var (
 func addBlock(x, y, z float32) {
 	const a = 0.5
 	const b = -a
-	var block = []float32{
+	block := []float32{
 		b, b, a,
 		a, b, a,
 		a, a, a,
@@ -53,7 +53,7 @@ func addBlock(x, y, z float32) {
 		a, a, b,
 		a, b, b,
 	}
-	var blockIndices = []uint16{
+	blockIndices := []uint16{
 		0, 1, 2, 2, 3, 0, // +z
 		4, 5, 6, 6, 7, 4, // -z
 		3, 2, 6, 6, 5, 3, // +y
@@ -61,12 +61,10 @@ func addBlock(x, y, z float32) {
 		1, 7, 6, 6, 2, 1, // +x
 		0, 3, 5, 5, 4, 0, // -x
 	}
-	cnt := uint16(len(chunk)) / 3
+	cnt := uint16(len(chunk) / 3)
 	for row := 0; row < 8; row++ {
 		idx := row * 3
-		chunk = append(chunk, block[idx]+x)
-		chunk = append(chunk, block[idx+1]+y)
-		chunk = append(chunk, block[idx+2]+z)
+		chunk = append(chunk, block[idx]+x, block[idx+1]+y, block[idx+2]+z)
 	}
 	for _, idx := range blockIndices {
 		chunkIndices = append(chunkIndices, cnt+idx)
@@ -217,6 +215,7 @@ func main() {
 	runtime.LockOSThread()
 
 	addBlock(0, 0, 0)
+	addBlock(1, 1, 1)
 	win := initGlfw()
 	defer glfw.Terminate()
 	program := initGl()
