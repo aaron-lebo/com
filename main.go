@@ -61,6 +61,7 @@ func addBlock(x, y, z float32) {
 		1, 7, 6, 6, 2, 1, // +x
 		0, 3, 5, 5, 4, 0, // -x
 	}
+	cnt := uint16(len(chunk)) / 3
 	for row := 0; row < 8; row++ {
 		idx := row * 3
 		chunk = append(chunk, block[idx]+x)
@@ -68,7 +69,7 @@ func addBlock(x, y, z float32) {
 		chunk = append(chunk, block[idx+2]+z)
 	}
 	for _, idx := range blockIndices {
-		chunkIndices = append(chunkIndices, idx)
+		chunkIndices = append(chunkIndices, cnt+idx)
 	}
 }
 
