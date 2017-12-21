@@ -1,6 +1,8 @@
 package main
 
 import (
+	"comanche/text"
+	. "comanche/util"
 	"fmt"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -10,25 +12,9 @@ import (
 	"strings"
 )
 
-const (
-	vertexShader = `
-		#version 410
-		uniform mat4 mvp;
-		in vec3 pos;
-		void main() {
-			gl_Position = mvp * vec4(pos, 1.0);
-		}
-	`
-	fragmentShader = `
-		#version 410
-		out vec4 color;
-		void main() {
-			color = vec4(1, 1, 1, 1.0);
-		}
-	`
-)
-
 var (
+	vertexShader   []byte
+	fragmentShader []byte
 	chunk          = make([]float32, 0, 24*4096)
 	chunkIndices   = make([]uint16, 0, 36*4096)
 	keys           [512]bool
@@ -39,6 +25,11 @@ var (
 	pitch          = 0.0
 	yaw            = -90.0
 )
+
+func init() {
+	vertexShader = Read("/vert.glsl")
+	fragmentShader = Read("/frag.glsl")
+}
 
 func addBlock(x, y, z float32) {
 	const a = 0.5
@@ -76,12 +67,6 @@ type ShaderProgram struct {
 	mvp     int32
 }
 
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
 func keyCallback(win *glfw.Window, key glfw.Key, scancode int, act glfw.Action, mod glfw.ModifierKey) {
 	if act == glfw.Press {
 		keys[key] = true
@@ -111,13 +96,13 @@ func sizeCallback(win *glfw.Window, w, h int) {
 }
 
 func initGlfw() *glfw.Window {
-	check(glfw.Init())
+	Check(glfw.Init())
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	win, err := glfw.CreateWindow(800, 600, "comanche", nil, nil)
-	check(err)
+	Check(err)
 	win.MakeContextCurrent()
 	win.SetInputMode(glfw.CursorMode, glfw.CursorDisabled)
 	win.SetKeyCallback(keyCallback)
@@ -127,9 +112,9 @@ func initGlfw() *glfw.Window {
 	return win
 }
 
-func attachShader(program, kind uint32, src string) {
+func attachShader(program, kind uint32, src []byte) {
 	s := gl.CreateShader(kind)
-	strs, free := gl.Strs(src + "\x00")
+	strs, free := gl.Strs(string(src) + "\x00")
 	gl.ShaderSource(s, 1, strs, nil)
 	free()
 	gl.CompileShader(s)
@@ -147,7 +132,7 @@ func attachShader(program, kind uint32, src string) {
 }
 
 func initGl() *ShaderProgram {
-	check(gl.Init())
+	Check(gl.Init())
 	fmt.Println(gl.GoStr(gl.GetString(gl.VERSION)))
 
 	gl.Enable(gl.CULL_FACE)
@@ -214,6 +199,7 @@ func render(program *ShaderProgram) {
 func main() {
 	runtime.LockOSThread()
 
+	text.Print()
 	for x := 0; x < 16; x++ {
 		for y := 0; y < 16; y++ {
 			for z := 0; z < 16; z++ {
