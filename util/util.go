@@ -11,7 +11,7 @@ func Check(err error) {
 	}
 }
 
-func Read(path string) []byte {
+func ReadFile(path string) []byte {
 	abs, err := filepath.Abs("./")
 	Check(err)
 	file, err := ioutil.ReadFile(abs + path)
