@@ -27,8 +27,8 @@ var (
 )
 
 func init() {
-	vertexShader = ReadFile("/vert.glsl")
-	fragmentShader = ReadFile("/frag.glsl")
+	vertexShader = ReadFile("vert.glsl")
+	fragmentShader = ReadFile("frag.glsl")
 }
 
 func addBlock(x, y, z float32) {

@@ -14,7 +14,7 @@ func Check(err error) {
 func ReadFile(path string) []byte {
 	abs, err := filepath.Abs("./")
 	Check(err)
-	file, err := ioutil.ReadFile(abs + path)
+	file, err := ioutil.ReadFile(abs + "/" + path)
 	Check(err)
 	return file
 }
