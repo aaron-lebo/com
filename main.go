@@ -62,11 +62,6 @@ func addBlock(x, y, z float32) {
 	}
 }
 
-type ShaderProgram struct {
-	program uint32
-	mvp     int32
-}
-
 func keyCallback(win *glfw.Window, key glfw.Key, scancode int, act glfw.Action, mod glfw.ModifierKey) {
 	if act == glfw.Press {
 		keys[key] = true
@@ -95,7 +90,7 @@ func sizeCallback(win *glfw.Window, w, h int) {
 	win.SetCursorPos(mouseX, mouseY)
 }
 
-func initGlfw() *glfw.Window {
+func initGl() *glfw.Window {
 	Check(glfw.Init())
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
@@ -109,6 +104,17 @@ func initGlfw() *glfw.Window {
 	win.SetCursorPosCallback(mouseCallback)
 	win.SetSizeCallback(sizeCallback)
 	win.SetCursorPos(mouseX, mouseY)
+
+	Check(gl.Init())
+	fmt.Println(gl.GoStr(gl.GetString(gl.VERSION)))
+
+	gl.Enable(gl.CULL_FACE)
+	gl.Enable(gl.DEPTH_TEST)
+
+	var vao uint32
+	gl.GenVertexArrays(1, &vao)
+	gl.BindVertexArray(vao)
+
 	return win
 }
 
@@ -131,16 +137,13 @@ func attachShader(program, kind uint32, src []byte) {
 	}
 }
 
-func initGl() *ShaderProgram {
-	Check(gl.Init())
-	fmt.Println(gl.GoStr(gl.GetString(gl.VERSION)))
+type ShaderProgram struct {
+	program uint32
+	mvp     int32
+}
 
-	gl.Enable(gl.CULL_FACE)
-	gl.Enable(gl.DEPTH_TEST)
-
-	var vao, vbo, ibo uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
+func newProgram() *ShaderProgram {
+	var vbo, ibo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(chunk), gl.Ptr(chunk), gl.STATIC_DRAW)
@@ -154,6 +157,18 @@ func initGl() *ShaderProgram {
 	attachShader(p, gl.FRAGMENT_SHADER, fragmentShader)
 	gl.LinkProgram(p)
 	return &ShaderProgram{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
+}
+
+func (p *ShaderProgram) Render() {
+	gl.UseProgram(p.program)
+	projection := mgl32.Perspective(mgl32.DegToRad(45.0), 4/3, 0.1, 1000.0)
+	view := mgl32.LookAtV(position, position.Add(direction), up)
+	model := mgl32.Ident4()
+	mvp := projection.Mul4(view).Mul4(model)
+	gl.UniformMatrix4fv(p.mvp, 1, false, &mvp[0])
+	gl.EnableVertexAttribArray(0)
+	gl.DrawElements(gl.TRIANGLES, int32(len(chunkIndices)), gl.UNSIGNED_SHORT, nil)
+	gl.DisableVertexAttribArray(0)
 }
 
 func radians(angle float64) float64 {
@@ -183,19 +198,6 @@ func update() {
 	}
 }
 
-func render(program *ShaderProgram) {
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	gl.UseProgram(program.program)
-	projection := mgl32.Perspective(mgl32.DegToRad(45.0), 4/3, 0.1, 1000.0)
-	view := mgl32.LookAtV(position, position.Add(direction), up)
-	model := mgl32.Ident4()
-	mvp := projection.Mul4(view).Mul4(model)
-	gl.UniformMatrix4fv(program.mvp, 1, false, &mvp[0])
-	gl.EnableVertexAttribArray(0)
-	gl.DrawElements(gl.TRIANGLES, int32(len(chunkIndices)), gl.UNSIGNED_SHORT, nil)
-	gl.DisableVertexAttribArray(0)
-}
-
 func main() {
 	runtime.LockOSThread()
 
@@ -208,12 +210,15 @@ func main() {
 		}
 	}
 
-	win := initGlfw()
+	win := initGl()
 	defer glfw.Terminate()
-	program := initGl()
+	program := newProgram()
 	for !win.ShouldClose() {
 		update()
-		render(program)
+
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		program.Render()
+
 		win.SwapBuffers()
 		glfw.PollEvents()
 	}
