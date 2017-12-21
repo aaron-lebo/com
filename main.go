@@ -214,8 +214,14 @@ func render(program *ShaderProgram) {
 func main() {
 	runtime.LockOSThread()
 
-	addBlock(0, 0, 0)
-	addBlock(1, 1, 1)
+	for x := 0; x < 16; x++ {
+		for y := 0; y < 16; y++ {
+			for z := 0; z < 16; z++ {
+				addBlock(float32(x), float32(y), float32(z))
+			}
+		}
+	}
+
 	win := initGlfw()
 	defer glfw.Terminate()
 	program := initGl()
