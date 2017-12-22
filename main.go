@@ -2,7 +2,7 @@ package main
 
 import (
 	"comanche/block"
-	_ "comanche/text"
+	"comanche/text"
 	. "comanche/util"
 	"fmt"
 	"github.com/go-gl/gl/v4.1-core/gl"
@@ -124,7 +124,7 @@ func main() {
 	win := initGl()
 	defer glfw.Terminate()
 	block.Init()
-	//text.Init()
+	text.Init()
 	for !win.ShouldClose() {
 		update()
 

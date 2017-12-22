@@ -52,11 +52,7 @@ func Init() {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
-
-	program = gl.CreateProgram()
-	AttachShader(program, gl.VERTEX_SHADER, "vert.glsl")
-	AttachShader(program, gl.FRAGMENT_SHADER, "frag.glsl")
-	gl.LinkProgram(program)
+	program = CreateProgram("")
 }
 
 func Render(mvp mgl32.Mat4) {

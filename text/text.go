@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	font *truetype.Font
-	vbo  uint32
+	font         *truetype.Font
+	program, vbo uint32
 )
 
 func init() {
@@ -28,18 +28,18 @@ func Init() {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-	p := gl.CreateProgram()
-	AttachShader(p, gl.VERTEX_SHADER, "text/vert.glsl")
-	AttachShader(p, gl.FRAGMENT_SHADER, "text/frag.glsl")
-	gl.LinkProgram(p)
-	gl.Uniform1i(gl.GetUniformLocation(p, gl.Str("tex\x00")), 0)
+	program = CreateProgram("text/")
+	gl.Uniform1i(gl.GetUniformLocation(program, gl.Str("tex\x00")), 0)
 
 	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
 }
 
 func Render(text string, x, y float32) {
-
+	gl.UseProgram(program)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	pos := uint32(gl.GetAttribLocation(program, gl.Str("pos\x00")))
+	gl.EnableVertexAttribArray(pos)
+	//gl.VertexAttribPointer(pos, 4, gl.FLOAT, false, 0, nil)
+	gl.DisableVertexAttribArray(pos)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 }

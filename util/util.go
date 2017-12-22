@@ -40,3 +40,11 @@ func AttachShader(program, kind uint32, path string) {
 		panic(fmt.Sprintf("shader compilation failed: %v\n%v", log, path))
 	}
 }
+
+func CreateProgram(path string) uint32 {
+	program := gl.CreateProgram()
+	AttachShader(program, gl.VERTEX_SHADER, path+"vert.glsl")
+	AttachShader(program, gl.FRAGMENT_SHADER, path+"frag.glsl")
+	gl.LinkProgram(program)
+	return program
+}
