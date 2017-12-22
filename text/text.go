@@ -6,7 +6,10 @@ import (
 	"github.com/golang/freetype/truetype"
 )
 
-var font *truetype.Font
+var (
+	font *truetype.Font
+	vbo  uint32
+)
 
 func init() {
 	ttf := ReadFile("text/NotoMono-Regular.ttf")
@@ -29,13 +32,14 @@ func Init() {
 	AttachShader(p, gl.VERTEX_SHADER, "text/vert.glsl")
 	AttachShader(p, gl.FRAGMENT_SHADER, "text/frag.glsl")
 	gl.LinkProgram(p)
-
 	gl.Uniform1i(gl.GetUniformLocation(p, gl.Str("tex\x00")), 0)
 
-	/*var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+}
 
-	return &ShaderProgram{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}*/
+func Render(text string, x, y float32) {
+
 }
