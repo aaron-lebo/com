@@ -12,8 +12,6 @@ import (
 )
 
 var (
-	vertexShader   []byte
-	fragmentShader []byte
 	chunk          = make([]float32, 0, 24*4096)
 	chunkIndices   = make([]uint16, 0, 36*4096)
 	keys           [512]bool
