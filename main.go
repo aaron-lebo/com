@@ -9,7 +9,6 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"math"
 	"runtime"
-	"strings"
 )
 
 var (
@@ -27,8 +26,7 @@ var (
 )
 
 func init() {
-	vertexShader = ReadFile("vert.glsl")
-	fragmentShader = ReadFile("frag.glsl")
+	runtime.LockOSThread()
 }
 
 func addBlock(x, y, z float32) {
@@ -108,6 +106,8 @@ func initGl() *glfw.Window {
 	Check(gl.Init())
 	fmt.Println(gl.GoStr(gl.GetString(gl.VERSION)))
 
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Enable(gl.CULL_FACE)
 	gl.Enable(gl.DEPTH_TEST)
 
@@ -116,25 +116,6 @@ func initGl() *glfw.Window {
 	gl.BindVertexArray(vao)
 
 	return win
-}
-
-func attachShader(program, kind uint32, src []byte) {
-	s := gl.CreateShader(kind)
-	strs, free := gl.Strs(string(src) + "\x00")
-	gl.ShaderSource(s, 1, strs, nil)
-	free()
-	gl.CompileShader(s)
-	gl.AttachShader(program, s)
-
-	var status int32
-	gl.GetShaderiv(s, gl.COMPILE_STATUS, &status)
-	if status == gl.FALSE {
-		var length int32
-		gl.GetShaderiv(s, gl.INFO_LOG_LENGTH, &length)
-		log := strings.Repeat("\x00", int(length+1))
-		gl.GetShaderInfoLog(s, length, nil, gl.Str(log))
-		panic(fmt.Sprintf("shader compilation failed: %v\n%v", log, src))
-	}
 }
 
 type ShaderProgram struct {
@@ -153,8 +134,8 @@ func newProgram() *ShaderProgram {
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 
 	p := gl.CreateProgram()
-	attachShader(p, gl.VERTEX_SHADER, vertexShader)
-	attachShader(p, gl.FRAGMENT_SHADER, fragmentShader)
+	AttachShader(p, gl.VERTEX_SHADER, "vert.glsl")
+	AttachShader(p, gl.FRAGMENT_SHADER, "frag.glsl")
 	gl.LinkProgram(p)
 	return &ShaderProgram{p, gl.GetUniformLocation(p, gl.Str("mvp\x00"))}
 }
@@ -199,9 +180,6 @@ func update() {
 }
 
 func main() {
-	runtime.LockOSThread()
-
-	text.Print()
 	for x := 0; x < 16; x++ {
 		for y := 0; y < 16; y++ {
 			for z := 0; z < 16; z++ {
@@ -212,6 +190,7 @@ func main() {
 
 	win := initGl()
 	defer glfw.Terminate()
+	text.Init()
 	program := newProgram()
 	for !win.ShouldClose() {
 		update()

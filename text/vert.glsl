@@ -1,6 +1,6 @@
 #version 410
 
-in vec3 pos;
+in vec4 pos;
 out vec2 tex_pos;
 
 void main() {
