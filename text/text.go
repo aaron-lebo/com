@@ -8,7 +8,7 @@ import (
 
 var (
 	font         *truetype.Font
-	program, vbo uint32
+	vbo, program uint32
 )
 
 func init() {
@@ -28,10 +28,10 @@ func Init() {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
+	gl.GenBuffers(1, &vbo)
+
 	program = CreateProgram("text/")
 	gl.Uniform1i(gl.GetUniformLocation(program, gl.Str("tex\x00")), 0)
-
-	gl.GenBuffers(1, &vbo)
 }
 
 func Render(text string, x, y float32) {

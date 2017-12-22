@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	chunk        = make([]float32, 0, 24*4096)
-	chunkIndices = make([]uint16, 0, 36*4096)
-	program, vbo uint32
+	chunk             = make([]float32, 0, 24*4096)
+	chunkIndices      = make([]uint16, 0, 36*4096)
+	vbo, ibo, program uint32
 )
 
 func Add(x, y, z float32) {
@@ -44,21 +44,22 @@ func Add(x, y, z float32) {
 }
 
 func Init() {
-	var vbo, ibo uint32
 	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, 4*len(chunk), gl.Ptr(chunk), gl.STATIC_DRAW)
 	gl.GenBuffers(1, &ibo)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 	program = CreateProgram("")
 }
 
 func Render(mvp mgl32.Mat4) {
 	gl.UseProgram(program)
 	gl.UniformMatrix4fv(gl.GetUniformLocation(program, gl.Str("mvp\x00")), 1, false, &mvp[0])
+	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(chunk), gl.Ptr(chunk), gl.STATIC_DRAW)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
 	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 	gl.DrawElements(gl.TRIANGLES, int32(len(chunkIndices)), gl.UNSIGNED_SHORT, nil)
 	gl.DisableVertexAttribArray(0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
 }
