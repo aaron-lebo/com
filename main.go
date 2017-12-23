@@ -135,7 +135,7 @@ func main() {
 		model := mgl32.Ident4()
 		block.Render(projection.Mul4(view).Mul4(model))
 
-		//text.Render("test", 10, 10)
+		text.Render("test", 10, 10)
 
 		win.SwapBuffers()
 		glfw.PollEvents()

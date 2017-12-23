@@ -50,6 +50,7 @@ func Init() {
 	gl.GenBuffers(1, &ibo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
+
 	program = CreateProgram("")
 }
 
@@ -57,11 +58,13 @@ func Render(mvp mgl32.Mat4) {
 	gl.UseProgram(program)
 	gl.UniformMatrix4fv(gl.GetUniformLocation(program, gl.Str("mvp\x00")), 1, false, &mvp[0])
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
+	defer gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
 	gl.EnableVertexAttribArray(0)
+	defer gl.DisableVertexAttribArray(0)
+
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 	gl.DrawElements(gl.TRIANGLES, int32(len(chunkIndices)), gl.UNSIGNED_SHORT, nil)
-	gl.DisableVertexAttribArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
+
 }

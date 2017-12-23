@@ -9,6 +9,7 @@ import (
 var (
 	font         *truetype.Font
 	vbo, program uint32
+	attr_pos     uint32
 )
 
 func init() {
@@ -19,8 +20,8 @@ func init() {
 }
 
 func Init() {
-	var tex uint32
 	gl.ActiveTexture(gl.TEXTURE0)
+	var tex uint32
 	gl.GenTextures(1, &tex)
 	gl.BindTexture(gl.TEXTURE_2D, tex)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
@@ -31,15 +32,19 @@ func Init() {
 	gl.GenBuffers(1, &vbo)
 
 	program = CreateProgram("text/")
+	attr_pos = uint32(gl.GetAttribLocation(program, gl.Str("pos\x00")))
 	gl.Uniform1i(gl.GetUniformLocation(program, gl.Str("tex\x00")), 0)
 }
 
 func Render(text string, x, y float32) {
 	gl.UseProgram(program)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	pos := uint32(gl.GetAttribLocation(program, gl.Str("pos\x00")))
-	gl.EnableVertexAttribArray(pos)
-	//gl.VertexAttribPointer(pos, 4, gl.FLOAT, false, 0, nil)
-	gl.DisableVertexAttribArray(pos)
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.EnableVertexAttribArray(attr_pos)
+	defer gl.DisableVertexAttribArray(attr_pos)
+
+	gl.VertexAttribPointer(attr_pos, 4, gl.FLOAT, false, 0, nil)
+	for _, chr := range text {
+		println(chr)
+	}
 }
