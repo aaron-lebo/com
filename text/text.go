@@ -3,20 +3,21 @@ package text
 import (
 	. "comanche/util"
 	"github.com/go-gl/gl/v4.1-core/gl"
-	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/inconsolata"
+	"golang.org/x/image/math/fixed"
+	"image"
+	"image/draw"
 )
 
 var (
-	font         *truetype.Font
+	face         *basicfont.Face
 	vbo, program uint32
 	attr_pos     uint32
 )
 
 func init() {
-	ttf := ReadFile("text/NotoMono-Regular.ttf")
-	var err error
-	font, err = truetype.Parse(ttf)
-	Check(err)
+	face = inconsolata.Regular8x16
 }
 
 func Init() {
@@ -29,9 +30,14 @@ func Init() {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
+	rgba := image.NewRGBA(face.Mask.Bounds())
+	draw.Draw(rgba, rgba.Bounds(), face.Mask, image.Point{0, 0}, draw.Src)
+	size := rgba.Rect.Size()
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(size.X), int32(size.Y), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
+
 	gl.GenBuffers(1, &vbo)
 
-	program = CreateProgram("text/")
+	program = CreateProgram("test/")
 	attr_pos = uint32(gl.GetAttribLocation(program, gl.Str("pos\x00")))
 	gl.Uniform1i(gl.GetUniformLocation(program, gl.Str("tex\x00")), 0)
 }
@@ -42,28 +48,30 @@ func Render(text string, x, y float32) {
 	defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.EnableVertexAttribArray(attr_pos)
 	defer gl.DisableVertexAttribArray(attr_pos)
-
 	gl.VertexAttribPointer(attr_pos, 4, gl.FLOAT, false, 0, nil)
-	for _, chr := range text {
-		var g truetype.GlyphBuf
-		Check(g.Load(font, 12, font.Index(chr), 0))
 
-		max := g.Bounds.Max
-		w := float32(max.X)
-		h := float32(max.Y)
-		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RED, int32(w), int32(h), 0, gl.RED, gl.UNSIGNED_BYTE, gl.Ptr(g.Points))
-		min := g.Bounds.Min
-		x2 := x + float32(min.X)*12
-		y2 := -y + float32(min.Y)*12
-		w *= 12
-		h *= 12
-		box := []float32{
-			x2, -y2, 0, 0,
-			x2 + w, -y2, 1, 0,
-			x2, -y2 - h, 0, 1,
-			x2 + w, -y2 - h, 1, 1,
-		}
-		gl.BufferData(gl.ARRAY_BUFFER, 4*len(box), gl.Ptr(box), gl.DYNAMIC_DRAW)
-		gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
+	const sx = float32(2.0 / 800)
+	const sy = float32(2.0 / 600)
+	w := float32(face.Width) * sx
+	h := float32(face.Height) * sy
+	n := 6 * len(text)
+	coords := make([]float32, 0, n)
+	for _, chr := range text {
+		x2 := x + float32(face.Left)*sx
+		y2 := -y - float32(face.Ascent)*sy
+		x += w
+		_, _, pos, _, _ := face.Glyph(fixed.Point26_6{0, 0}, chr)
+		txy := float32(pos.Y)
+		coords = append(coords,
+			x2, -y2-h, 0, txy+h,
+			x2+w, -y2-h, w, txy+h,
+			x2+w, -y2, w, txy,
+			x2+w, -y2, w, txy,
+			x2, -y2, 0, txy,
+			x2, -y2-h, 0, txy+h,
+		)
+
 	}
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(coords), gl.Ptr(coords), gl.DYNAMIC_DRAW)
+	gl.DrawArrays(gl.TRIANGLES, 0, int32(n))
 }

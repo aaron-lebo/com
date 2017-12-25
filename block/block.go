@@ -51,7 +51,7 @@ func Init() {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 2*len(chunkIndices), gl.Ptr(chunkIndices), gl.STATIC_DRAW)
 
-	program = CreateProgram("")
+	program = CreateProgram("block/")
 }
 
 func Render(mvp mgl32.Mat4) {
