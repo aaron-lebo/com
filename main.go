@@ -123,19 +123,19 @@ func main() {
 
 	win := initGl()
 	defer glfw.Terminate()
-	//block.Init()
+	block.Init()
 	text.Init()
 	for !win.ShouldClose() {
 		update()
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		//projection := mgl32.Perspective(mgl32.DegToRad(45.0), 4/3, 0.1, 1000.0)
-		//view := mgl32.LookAtV(position, position.Add(direction), up)
-		//model := mgl32.Ident4()
-		//block.Render(projection.Mul4(view).Mul4(model))
+		projection := mgl32.Perspective(mgl32.DegToRad(45.0), 4/3, 0.1, 1000.0)
+		view := mgl32.LookAtV(position, position.Add(direction), up)
+		model := mgl32.Ident4()
+		block.Render(projection.Mul4(view).Mul4(model))
 
-		text.Render("a", 0, 0)
+		text.Render("test", 0, 0)
 
 		win.SwapBuffers()
 		glfw.PollEvents()

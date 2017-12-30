@@ -14,6 +14,7 @@ var (
 	face         *basicfont.Face
 	vbo, program uint32
 	attr_pos     uint32
+	sizeX, sizeY int
 )
 
 func init() {
@@ -33,11 +34,13 @@ func Init() {
 	rgba := image.NewRGBA(face.Mask.Bounds())
 	draw.Draw(rgba, rgba.Bounds(), face.Mask, image.Point{0, 0}, draw.Src)
 	size := rgba.Rect.Size()
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(size.X), int32(size.Y), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
+	sizeX = size.X
+	sizeY = size.Y
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(sizeX), int32(sizeY), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 
 	gl.GenBuffers(1, &vbo)
 
-	program = CreateProgram("test/")
+	program = CreateProgram("text/")
 	attr_pos = uint32(gl.GetAttribLocation(program, gl.Str("pos\x00")))
 	gl.Uniform1i(gl.GetUniformLocation(program, gl.Str("tex\x00")), 0)
 }
@@ -50,27 +53,28 @@ func Render(text string, x, y float32) {
 	defer gl.DisableVertexAttribArray(attr_pos)
 	gl.VertexAttribPointer(attr_pos, 4, gl.FLOAT, false, 0, nil)
 
+	per := float32(17) / float32(sizeY)
 	const sx = float32(2.0 / 800)
 	const sy = float32(2.0 / 600)
 	w := float32(face.Width) * sx
-	h := float32(face.Height) * sy
+	h := float32(17) * sy
 	n := 6 * len(text)
 	coords := make([]float32, 0, n)
 	for _, chr := range text {
 		x2 := x + float32(face.Left)*sx
 		y2 := -y - float32(face.Ascent)*sy
 		x += w
-		_, _, pos, _, _ := face.Glyph(fixed.Point26_6{0, 0}, chr)
-		txy := float32(pos.Y)
+		_, _, pos, _, _ := face.Glyph(fixed.Point26_6{100, 100}, chr)
+		i := float32(pos.Y / 17)
+		i1 := i + 1.0
 		coords = append(coords,
-			x2, -y2-h, 0, txy+h,
-			x2+w, -y2-h, w, txy+h,
-			x2+w, -y2, w, txy,
-			x2+w, -y2, w, txy,
-			x2, -y2, 0, txy,
-			x2, -y2-h, 0, txy+h,
+			x2, -y2-h, 0, per*i1,
+			x2+w, -y2-h, 1, per*i1,
+			x2+w, -y2, 1, per*i,
+			x2+w, -y2, 1, per*i,
+			x2, -y2, 0, per*i,
+			x2, -y2-h, 0, per*i1,
 		)
-
 	}
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(coords), gl.Ptr(coords), gl.DYNAMIC_DRAW)
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(n))
